@@ -1,3 +1,4 @@
+from typing import Any
 from pygame import *
 
 window = display.set_mode((800, 800))
@@ -27,7 +28,7 @@ class Player(GameSprite):
         GameSprite.__init__(self, sprite_image, x, y, 50, 50)
 
         self.speed = player_speed
-
+        self.health = 3
     def update(self):
         keys = key.get_pressed()
         if keys[K_LEFT]:
@@ -45,6 +46,16 @@ class Enemy(GameSprite):
         GameSprite.__init__(self, sprite_image, x, y, 50, 50)
 
         self.speed = enemy_speed
+    
+    def update(self):
+        if self.rect.x < player.rect.x:
+            self.rect.x += self.speed
+        elif self.rect.x > player.rect.x:
+            self.rect.x -= self.speed
+        if self.rect.y < player.rect.y:
+            self.rect.y += self.speed
+        elif self.rect.y > player.rect.y:
+            self.rect.y -= self.speed
 
 
 
@@ -65,12 +76,15 @@ while game:
     if finish:
         window.blit(background, (0,0))
         player.update()
-
+        enemy.update()
 
         player.reset()
         enemy.reset()
 
         if sprite.collide_rect(player, enemy):
+            player.health -= 1
+
+        if player.health == 0:
             finish = False
 
     display.update()
