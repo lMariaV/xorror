@@ -46,6 +46,7 @@ class Player(GameSprite):
         elif keys[K_UP]:
             self.rect.y -= self.speed
             self.direction = "UP"
+        enemy.direction_list.append(self.direction)
 
 
 class Enemy(GameSprite):
@@ -54,25 +55,20 @@ class Enemy(GameSprite):
 
         self.speed_x = enemy_speed
         self.speed_y = enemy_speed
-        self.direction = None
+        self.direction = "DOWN"
         self.direction_list = []
         self.index = 0
     
     def update(self):
-        if self.rect.x < player.rect.x:
+        if self.direction == "RIGHT":
             self.rect.x += self.speed_x
-            self.direction = "RIGHT"
-        elif self.rect.x > player.rect.x:
-            self.rect.x -= self.speed_x
-            self.direction = "LEFT"
-        if self.rect.y < player.rect.y:
-            self.rect.y += self.speed_y
-            self.direction = "DOWN"
-        elif self.rect.y > player.rect.y:
+        elif self.direction == "LEFT":
+            self.rect.x -= self.speed_x    
+        elif self.direction == "DOWN":
+            self.rect.y += self.speed_y    
+        elif self.direction == "DOWN":
             self.rect.y -= self.speed_y
-            self.direction = "DOWN"
-
-
+            
 
 class Walls(GameSprite):
     def __init__(self, sprite_image, x, y, width, height):
@@ -88,8 +84,8 @@ class Walls(GameSprite):
         window.blit(self.image, (self.rect.x, self.rect.y))
 
 
-player = Player('player.jpg', 40, 40, 5)
-enemy = Enemy('enemy.jpg', 800, 800, 1)
+player = Player('player.jpg', 500, 200, 5)
+enemy = Enemy('enemy.jpg', 500, 30, 1)
 
 wall_1 = Walls('enemy.jpg', 500, 500, 60, 100)
 walls_group = sprite.Group()
@@ -99,11 +95,11 @@ while game:
     for e in event.get():
         if e.type == QUIT:
             game = False
-        '''if e.type == KEYDOWN:
-            if key == K_  '''      
+
     if finish:
         window.blit(background, (0,0))
         player.update()
+
         enemy.update()
         wall_1.draw_wall()
 
@@ -122,11 +118,10 @@ while game:
                 player.rect.y += player.speed
         
         if sprite.spritecollide(enemy, walls_group, False):
+            enemy.index += 1
+            enemy.direction = enemy.direction_list[enemy.index]
             if enemy.direction == "LEFT":
                 enemy.rect.x += enemy.speed_x
-                enemy.speed_x += enemy.speed_y
-                enemy.speed_y = enemy.speed_x - enemy.speed_y
-                enemy.speed_x -= enemy.speed_y
             elif enemy.direction == "RIGHT":
                 enemy.rect.x -= enemy.speed_x
             elif enemy.direction == "DOWN":
