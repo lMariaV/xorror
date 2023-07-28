@@ -30,7 +30,6 @@ class Player(GameSprite):
         self.speed = player_speed
         self.health = 3
         self.direction = None
-
     def update(self):
         #сделать проверку направления движения вверх + влево вправо + вверх и тп
         keys = key.get_pressed()
@@ -47,7 +46,6 @@ class Player(GameSprite):
             self.rect.y -= self.speed
             self.direction = "UP"
         enemy.direction_list.append(self.direction)
-
 
 class Enemy(GameSprite):
     def __init__(self, sprite_image, x, y, enemy_speed):
@@ -69,6 +67,28 @@ class Enemy(GameSprite):
         elif self.direction == "DOWN":
             self.rect.y -= self.speed_y
             
+    def change_direction(self):
+        print(enemy.direction_list)
+        if self.direction == "LEFT":
+            self.rect.x += self.speed_x
+        elif self.direction == "RIGHT":
+            self.rect.x -= self.speed_x
+        elif self.direction == "DOWN":
+            self.rect.y -= self.speed_y
+        elif self.direction == "UP":
+            self.rect.y += self.speed_y
+        self.direction = None
+        for dir in self.direction_list:
+            if self.direction == dir:
+                self.direction_list = self.direction_list[self.direction_list.index(dir):]
+            else:    
+                self.direction = dir
+                self.direction_list = self.direction_list[self.direction_list.index(dir):]
+                break
+            print(enemy.direction_list)
+
+
+
 
 class Walls(GameSprite):
     def __init__(self, sprite_image, x, y, width, height):
@@ -99,7 +119,7 @@ while game:
     if finish:
         window.blit(background, (0,0))
         player.update()
-
+        enemy.direction_list.append(player.direction)
         enemy.update()
         wall_1.draw_wall()
 
@@ -118,16 +138,7 @@ while game:
                 player.rect.y += player.speed
         
         if sprite.spritecollide(enemy, walls_group, False):
-            enemy.index += 1
-            enemy.direction = enemy.direction_list[enemy.index]
-            if enemy.direction == "LEFT":
-                enemy.rect.x += enemy.speed_x
-            elif enemy.direction == "RIGHT":
-                enemy.rect.x -= enemy.speed_x
-            elif enemy.direction == "DOWN":
-                enemy.rect.y -= enemy.speed_y
-            elif enemy.direction == "UP":
-                enemy.rect.y += enemy.speed_y
+            enemy.change_direction()
 
 
 
