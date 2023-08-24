@@ -35,6 +35,10 @@ class Player(GameSprite):
         self.speed = player_speed
         self.health = 3
         self.direction = None
+
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
     
     def update(self):
         keys = key.get_pressed()
@@ -54,7 +58,21 @@ class Player(GameSprite):
             self.rect.y -= self.speed
             self.direction = "UP"
             self.image = transform.scale(image.load('mc_up.jpg'), (40, 40))
-
+        
+        walls_touched = sprite.spritecollide(self, walls_group, False)
+        if walls_touched:
+            if self.direction == "LEFT": 
+                for wall in walls_touched:
+                    self.rect.left = min(self.rect.right, wall.rect.right) 
+            elif self.direction == "RIGHT": 
+                for wall in walls_touched:
+                    self.rect.right = max(self.rect.left, wall.rect.left) 
+            elif self.direction == "UP": 
+                for wall in walls_touched:
+                    self.rect.top = min(self.rect.bottom, wall.rect.bottom) 
+            elif self.direction == "DOWN": 
+                for wall in walls_touched:
+                    self.rect.bottom = max(self.rect.top, wall.rect.top) 
 
 class Enemy(GameSprite):
     def __init__(self, sprite_image, x, y, enemy_speed):
@@ -72,20 +90,25 @@ class Enemy(GameSprite):
             self.rect.y += self.speed   
         elif self.direction == "UP":
             self.rect.y -= self.speed
-            
-    def change_direction(self):
-        if self.direction == "LEFT":
-            self.rect.x += self.speed
-            self.direction = "UP"
-        elif self.direction == "RIGHT":
-            self.rect.x -= self.speed
-            self.direction = "DOWN"
-        elif self.direction == "DOWN":
-            self.rect.y -= self.speed
-            self.direction = "LEFT"
-        elif self.direction == "UP":
-            self.rect.y += self.speed
-            self.direction = "RIGHT"
+        
+        walls_touched = sprite.spritecollide(self, walls_group, False)
+        if walls_touched:
+            if self.direction == "LEFT":
+                for wall in walls_touched:
+                    self.rect.left = min(self.rect.right, wall.rect.right) 
+                self.direction = "UP"
+            elif self.direction == "RIGHT":
+                self.direction = "DOWN"
+                for wall in walls_touched:
+                    self.rect.right = max(self.rect.left, wall.rect.left) 
+            elif self.direction == "UP":
+                for wall in walls_touched:
+                    self.rect.top = min(self.rect.bottom, wall.rect.bottom) 
+                self.direction = "RIGHT"
+            elif self.direction == "DOWN": 
+                for wall in walls_touched:
+                    self.rect.bottom = max(self.rect.top, wall.rect.top) 
+                self.direction = "LEFT"
 
 
 
@@ -96,6 +119,9 @@ class Walls(GameSprite):
         self.height = height
         self.image = transform.scale(image.load('enemy.jpg'), (self.width, self.height))
 
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
     def update(self):
         window.blit(self.image, (self.rect.x, self.rect.y))
 
@@ -172,6 +198,9 @@ walls_group.add(Walls('enemy.jpg', 230, 230, 10, 140))
 walls_group.add(Walls('enemy.jpg', 230, 430, 10, 140))
 walls_group.add(Walls('enemy.jpg', 560, 230, 10, 330))
 
+k_picked = False
+k = Enemy('enemy.jpg', 370, 370, 0)
+
 
 while game:
     for e in event.get():
@@ -180,32 +209,25 @@ while game:
 
     if finish:
         window.blit(background, (0,0))
-        player.update()
+      
         enemy_1.update()
         enemy_2.update()
-
+        k.update()
         walls_group.update()
-
+        player.update()
+        
         player.reset()
         enemy_1.reset()
         enemy_2.reset()
-
-        if sprite.spritecollide(player, walls_group, False):
-            if player.direction == "LEFT":
-                player.rect.x += player.speed
-            elif player.direction == "RIGHT":
-                player.rect.x -= player.speed
-            elif player.direction == "DOWN":
-                player.rect.y -= player.speed
-            elif player.direction == "UP":
-                player.rect.y += player.speed
+        if not k_picked:
+            k.reset()
         
-        if sprite.spritecollide(enemy_1, walls_group, False):
-            enemy_1.change_direction()
+        if sprite.collide_rect(player, k):
+            k_picked = True
+            k.kill()
+            end_wall.kill()
 
-        if sprite.spritecollide(enemy_2, walls_group, False):
-            enemy_2.change_direction()
-        
+
         if sprite.collide_rect(player, enemy_1) or sprite.collide_rect(player, enemy_2):
             player.health -= 1
 
